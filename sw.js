@@ -1,5 +1,5 @@
 /* FactoryPulse service worker — bump VERSION on every deploy to refresh cached files. */
-const VERSION = 'fp-v1';
+const VERSION = 'fp-v2';
 const SHELL = [
   './',
   'index.html',
@@ -41,6 +41,12 @@ self.addEventListener('fetch', (e) => {
 
   // Never touch the API (login sessions, reports) — always live from the network.
   if (url.origin === location.origin && url.pathname.includes('/api/')) return;
+
+  // config.js holds the API address: always try the network first.
+  if (url.origin === location.origin && url.pathname.endsWith('/config.js')) {
+    e.respondWith(fetch(req).catch(() => caches.match(req)));
+    return;
+  }
 
   // Page loads: network first, fall back to the cached shell when offline.
   if (req.mode === 'navigate') {
