@@ -1,0 +1,44 @@
+# FactoryPulse — Hostinger (LiteSpeed/Apache)
+Options -Indexes
+DirectoryIndex index.html
+
+# config.php is only ever included by PHP, never opened in a browser.
+<Files "config.php">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</Files>
+
+# Hide dot-files and markdown notes.
+<FilesMatch "^(\.|README\.md$)">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+
+# PWA: manifest type + make sure the service worker is never served stale.
+AddType application/manifest+json .webmanifest
+<IfModule mod_headers.c>
+  <FilesMatch "^(sw\.js|manifest\.webmanifest)$">
+    Header set Cache-Control "no-cache, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+  Header always set X-Frame-Options "SAMEORIGIN"
+</IfModule>
+
+# Force HTTPS (uncomment after SSL is active in hPanel → Security → SSL)
+# RewriteEngine On
+# RewriteCond %{HTTPS} off
+# RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
