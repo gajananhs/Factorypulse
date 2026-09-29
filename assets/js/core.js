@@ -141,7 +141,16 @@
     try {
       res = await fetch(url, opts);
     } catch (e) {
-      throw Object.assign(new Error('No connection to the server. Check your internet and try again.'), { network: true });
+      console.error('FactoryPulse API unreachable:', url, e);
+      let msg = 'No connection to the server. Check your internet and try again.';
+      if (/YOUR-DOMAIN/i.test(url)) {
+        msg = 'API address not set. Edit config.js and put your real server address in FP_API_BASE.';
+      } else if (navigator.onLine) {
+        let host = url;
+        try { host = new URL(url, location.href).host; } catch (e2) { /* keep raw */ }
+        msg = `Cannot reach the API at ${host}. Check FP_API_BASE in config.js, that the api folder is uploaded, and CORS (see browser console).`;
+      }
+      throw Object.assign(new Error(msg), { network: true });
     }
     let data = null;
     try { data = await res.json(); } catch (e) { /* non-JSON */ }
